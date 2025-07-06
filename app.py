@@ -4,6 +4,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import openai
+import re  # 用來做正則匹配
 
 app = Flask(__name__)
 
@@ -11,7 +12,7 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-# 完整牌卡簡易解讀內容 (001~108, A00~A21 已完整放入)
+# 這裡是你的牌卡解讀字典，保持不變
 cards_summary = {
     "A00": "神聖啟程：代表新的開始與純淨能量，妳正踏上新的旅程。",
     "A01": "魔法顯化：妳的願望與意圖正快速顯化，專注妳的目標。",
@@ -143,7 +144,17 @@ cards_summary = {
     "106": "橙光律動：喜悅行動力，活力行動，帶動正向好心情。",
     "107": "淨界之門：情緒清空，結束不再適合自己的能量空間。",
     "108": "馨悅之境：愉悅擴展，為自己創造美好的情緒與生活空間。",
+
 }
+
+# 這是我們新增的模糊搜尋函數
+def search_card_by_name(user_input):
+    # 使用正則表達式來匹配可能的卡片名稱或編號
+    for card_key, card_summary in cards_summary.items():
+        # 查找是否有關鍵字出現在牌卡編號或名稱中
+        if re.search(user_input, card_key, re.IGNORECASE):  # re.IGNORECASE 忽略大小寫
+            return card_key, card_summary
+    return None, None  # 沒有找到則返回 None
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -157,10 +168,11 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    card_key = event.message.text.strip()
-    card_summary = cards_summary.get(card_key, None)
+    user_msg = event.message.text.strip()
+    # 搜尋是否有匹配的牌卡名稱或編號
+    card_key, card_summary = search_card_by_name(user_msg)
 
-    if card_summary:
+    if card_key:
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
@@ -194,5 +206,3 @@ def handle_message(event):
 @app.route('/')
 def home():
     return '馥靈之鑰情緒共振服務與副業引導已啟動！'
-
-
