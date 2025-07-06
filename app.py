@@ -148,10 +148,13 @@ cards_summary = {
 
 common_questions = {
     "抽牌前要準備什麼？": "找個安靜角落，深呼吸三次，心裡放一句想聚焦的關鍵字即可——茶還沒涼，天使就排隊上線。",
-    "抽牌一定要付費嗎？": "單張牌完全免費體驗喔！如果想要更完整深入的解讀，請參考付費方案～",
-    "匯款後多久拿得到解答？": "截圖確認後 6 小時內送達（22:00 後匯款順延到隔日）。急件請敲真人客服，我會幫你插隊。",
-    "幫我轉真人服務": "立刻幫你敲真人客服囉！請點 👉 LINE 小秘書：https://lin.ee/6NeP56y，天使即將上線！",
-    # 可繼續擴充你的常見問題列表
+    "抽牌一定要付費嗎？": "單張牌完全免費體驗喔！想要更深入完整的解讀請參考付費方案。",
+    "匯款後多久拿得到解答？": "截圖確認後6小時內送達（22:00後匯款順延到隔日）。急件請敲真人客服，我會幫你插隊。",
+    "可以退費嗎？": "匯款後72小時內、且尚未收到解讀可全額退。收到解讀視同服務完成不再退費。",
+    "幫我轉真人服務": "已幫你轉真人客服囉！請點👉 LINE小秘書：https://lin.ee/6NeP56y，天使本人即刻上線服務！",
+    "我想學習": "好眼光！你可以直接跟逸君姐學習，從牌卡解讀到個人頻率調整都能學喔！請直接敲👉 LINE小秘書：https://lin.ee/6NeP56y",
+    "想當副業": "太棒了！想用馥靈之鑰當副業賺錢，可以直接聯絡逸君姐，完整培訓計畫等著你！👉 LINE小秘書：https://lin.ee/6NeP56y",
+    # 可再補其他 QA
 }
 
 def normalize_text(text):
@@ -185,7 +188,7 @@ def handle_message(event):
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
             return
 
-    # 提取牌卡編號
+    # 提取牌卡編號 (例如 A02、088)
     card_pattern = re.compile(r'(A\d{2,3}|\d{3})', re.IGNORECASE)
     card_match = card_pattern.search(user_input)
 
@@ -200,9 +203,9 @@ def handle_message(event):
             # 免費單張牌解讀模式
             prompt = (
                 f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
-                "請用溫暖 × 俏皮 × 智慧 × 微毒舌風格，絕對避免醫療敏感詞彙，"
+                "請以溫暖 × 俏皮 × 智慧 × 微毒舌風格，絕對避免醫療敏感詞彙，"
                 "使用「情緒紓解」「身心放鬆」「能量調頻」等安全詞彙，"
-                "提供使用者一則簡短的智慧指引與今日提醒，運用心經的智慧來解牌但不提及心經。"
+                "提供使用者一則簡短的智慧指引與今日提醒。"
             )
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -225,8 +228,9 @@ def handle_message(event):
                 "12 張 $1,800｜360° 雷達＋行動清單\n"
                 "15 張 $2,200｜意念劇本完整攻略\n"
                 "💵 匯款資訊：國泰世華 013｜248506240133｜王逸君\n"
-                "截圖匯款成功畫面即可享有服務喔！\n\n"
-                "👉 真人服務請輸入：「幫我轉真人服務」"
+                "截圖匯款成功畫面即可享有服務喔！"
+                "\n\n想要學習牌卡解讀或當副業？輸入「我想學習」或「想當副業」取得更多資訊！"
+                "\n\n👉 真人服務請輸入：「幫我轉真人服務」"
                 "\n\n🔮 快速抽牌入口：https://hourlight.github.io/"
             )
         else:
@@ -249,16 +253,20 @@ def handle_message(event):
             card_reading = response.choices[0].message.content.strip()
 
             reply = (
-                f"{card_reading}\n\n✨ 若想深入探討或有其他疑問，請私訊小秘書真人服務喔！"
+                f"{card_reading}\n\n✨ 若想深入學習馥靈之鑰的解讀技術或當成副業增加收入，"
+                "歡迎輸入「我想學習」或「想當副業」，直接與逸君姐洽詢培訓計畫喔！"
                 "\n\n👉 真人客服：https://lin.ee/6NeP56y"
                 "\n\n🔮 更多抽牌：https://hourlight.github.io/"
             )
 
     else:
-        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！\n\n👉 請確認輸入或輸入「幫我轉真人服務」讓我們協助你～"
+        reply = (
+            f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！\n\n"
+            "👉 如需協助，輸入「幫我轉真人服務」或點 👉 LINE 小秘書：https://lin.ee/6NeP56y"
+        )
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 @app.route('/')
 def home():
-    return '馥靈之鑰情緒共振智慧解牌 × 行銷小幫手已完整啟動！'
+    return '馥靈之鑰情緒共振智慧解牌 × 行銷小幫手 × 副業與學習培訓引導已完整啟動！'
