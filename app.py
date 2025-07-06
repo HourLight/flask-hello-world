@@ -203,3 +203,11 @@ def handle_message(event):
 @app.route('/')
 def home():
     return '馥靈之鑰情緒共振服務與副業引導已啟動！'
+@app.route('/cards/<card_key>')
+def get_card(card_key):
+    # 直接透過網址來檢查 cards_summary 內的卡片資料
+    card_summary = cards_summary.get(card_key)
+    if card_summary:
+        return f"找到牌卡 {card_key}：{card_summary}"
+    else:
+        return f"找不到牌卡 {card_key}，請檢查你的牌卡字典。"
