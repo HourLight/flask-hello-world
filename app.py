@@ -168,23 +168,15 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    user_msg = event.message.text.strip().lower()  # 轉換為小寫以避免大小寫影響
+    card_key, card_summary = search_card_by_name(event.message.text)
 
-    found_card = None
-    for card_key, card_summary in cards_summary.items():
-        # 將牌卡編號和內容轉成小寫進行模糊匹配
-        if user_msg in card_key.lower() or user_msg in card_summary.lower():
-            found_card = (card_key, card_summary)
-            break  # 找到後立刻跳出
-
-    if found_card:
-        card_key, card_summary = found_card
+    if card_key:
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
         )
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",  # 改用 GPT-4o 模型
             messages=[
                 {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
                 {"role": "user", "content": prompt}
@@ -202,6 +194,7 @@ def handle_message(event):
         )
 
         reply = f"{card_reading}{additional_message}"
+
     else:
         reply = "抱歉，我沒有找到這張牌卡，請你檢查一下輸入的牌卡編號或名稱是否正確喔！"
 
