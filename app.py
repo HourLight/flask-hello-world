@@ -169,9 +169,24 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text.strip()
-    card_key, card_summary = search_card_by_name(user_input)
+    normalized_input = normalize_text(user_input)
 
-    if card_key:
+    # 加入 debug 模式
+    debug_msg = f"🔍 [DEBUG] 使用者輸入:「{user_input}」，正規化後:「{normalized_input}」\n"
+
+    found_card = None
+    for card_key, card_summary in cards_summary.items():
+        normalized_card_key = normalize_text(card_key)
+        normalized_card_summary = normalize_text(card_summary)
+
+        debug_msg += f"\n🔸 比較牌卡:「{card_key}」，正規化後:「{normalized_card_key}」"
+
+        if normalized_card_key == normalized_input or normalized_input in normalized_card_summary:
+            found_card = (card_key, card_summary)
+            break
+
+    if found_card:
+        card_key, card_summary = found_card
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
@@ -195,12 +210,8 @@ def handle_message(event):
         )
 
         reply = f"{card_reading}{additional_message}"
-
     else:
-        reply = "抱歉，我沒有找到這張牌卡，請你檢查一下輸入的牌卡編號或名稱是否正確喔！"
+        # 加入詳細 debug 訊息回覆使用者
+        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！\n\n{debug_msg}"
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
-
-@app.route('/')
-def home():
-    return '馥靈之鑰情緒共振服務與副業引導已啟動！（GPT模式）'
