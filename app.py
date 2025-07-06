@@ -177,7 +177,7 @@ def handle_message(event):
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
         )
         response = openai.ChatCompletion.create(
-            model="gpt-4o",  # 建議繼續使用GPT-4o提升效果
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
                 {"role": "user", "content": prompt}
@@ -200,3 +200,7 @@ def handle_message(event):
         reply = "抱歉，我沒有找到這張牌卡，請你檢查一下輸入的牌卡編號或名稱是否正確喔！"
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
+
+@app.route('/')
+def home():
+    return '馥靈之鑰情緒共振服務與副業引導已啟動！（GPT模式）'
