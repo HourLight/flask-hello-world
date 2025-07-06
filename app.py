@@ -185,7 +185,7 @@ def handle_message(event):
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
         )
-       response = openai.ChatCompletion.create(
+    response = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",  # 如果無法使用GPT-4o，暫時改成gpt-3.5-turbo
             messages=[
                 {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
