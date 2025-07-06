@@ -168,11 +168,17 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    user_msg = event.message.text.strip()
-    # 搜尋是否有匹配的牌卡名稱或編號
-    card_key, card_summary = search_card_by_name(user_msg)
+    user_msg = event.message.text.strip().lower()  # 轉換為小寫以避免大小寫影響
 
-    if card_key:
+    found_card = None
+    for card_key, card_summary in cards_summary.items():
+        # 將牌卡編號和內容轉成小寫進行模糊匹配
+        if user_msg in card_key.lower() or user_msg in card_summary.lower():
+            found_card = (card_key, card_summary)
+            break  # 找到後立刻跳出
+
+    if found_card:
+        card_key, card_summary = found_card
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
@@ -188,7 +194,6 @@ def handle_message(event):
         )
         card_reading = response.choices[0].message.content.strip()
 
-        # 加入導流與副業推廣訊息
         additional_message = (
             "\n\n✨ 如果你還有其他的心裡疑惑，或想知道更多高維給你的訊息，"
             "歡迎進一步抽取三張、五張、七張，甚至十五張牌，"
@@ -197,7 +202,6 @@ def handle_message(event):
         )
 
         reply = f"{card_reading}{additional_message}"
-
     else:
         reply = "抱歉，我沒有找到這張牌卡，請你檢查一下輸入的牌卡編號或名稱是否正確喔！"
 
