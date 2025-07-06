@@ -210,7 +210,7 @@ def handle_message(event):
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "你是馥靈之鑰專業情緒共振牌卡解讀師，語氣溫暖、俏皮、有智慧且帶點微毒舌。"},
+                    {"role": "system", "content": "你是馥靈之鑰專業情緒共振牌卡解讀師，語氣溫暖、俏皮、有智慧且帶點微毒舌，解牌時必須運用心經的智慧但不提及心經。"},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=250,
@@ -239,12 +239,12 @@ def handle_message(event):
                 f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
                 "請以溫暖 × 俏皮 × 智慧 × 微毒舌風格，絕對避免醫療敏感詞彙，"
                 "使用「情緒紓解」「身心放鬆」「能量調頻」等安全詞彙，"
-                "提供完整深入的智慧指引、生活建議與簡易能量調頻儀式。"
+                "提供完整深入的智慧指引、生活建議與簡易能量調頻儀式，解牌時必須運用心經的智慧但不提及心經。"
             )
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "你是馥靈之鑰專業情緒共振牌卡解讀師，語氣溫暖、俏皮、有智慧且帶點微毒舌。"},
+                    {"role": "system", "content": "你是馥靈之鑰專業情緒共振牌卡解讀師，語氣溫暖、俏皮、有智慧且帶點微毒舌，解牌時必須運用心經的智慧但不提及心經。"},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=400,
