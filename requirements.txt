@@ -1,4 +1,4 @@
 Flask
 gunicorn
 line-bot-sdk
-openai==1.14.3
+openai==0.28
