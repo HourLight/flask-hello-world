@@ -169,37 +169,24 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text.strip()
-    normalized_input = normalize_text(user_input)
+    card_key, card_summary = search_card_by_name(user_input)
 
-    # 加入 debug 模式
-    debug_msg = f"🔍 [DEBUG] 使用者輸入:「{user_input}」，正規化後:「{normalized_input}」\n"
-
-    found_card = None
-    for card_key, card_summary in cards_summary.items():
-        normalized_card_key = normalize_text(card_key)
-        normalized_card_summary = normalize_text(card_summary)
-
-        debug_msg += f"\n🔸 比較牌卡:「{card_key}」，正規化後:「{normalized_card_key}」"
-
-        if normalized_card_key == normalized_input or normalized_input in normalized_card_summary:
-            found_card = (card_key, card_summary)
-            break
-
-    if found_card:
-        card_key, card_summary = found_card
+    if card_key:
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
         )
-        response = openai.ChatCompletion.create(
+        # 注意此處更新為新版呼叫方式
+        response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
+                {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀。"},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=400,
             temperature=1.0
         )
+        # 回傳方式也有變更，需要加入 .choices[0].message.content
         card_reading = response.choices[0].message.content.strip()
 
         additional_message = (
@@ -211,7 +198,6 @@ def handle_message(event):
 
         reply = f"{card_reading}{additional_message}"
     else:
-        # 加入詳細 debug 訊息回覆使用者
-        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！\n\n{debug_msg}"
+        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！"
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
