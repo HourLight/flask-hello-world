@@ -4,7 +4,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import openai
-import re  # 用來做正則匹配
+import re
 
 app = Flask(__name__)
 
@@ -12,7 +12,6 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-# 這裡是你的牌卡解讀字典，保持不變
 cards_summary = {
     "A00": "神聖啟程：代表新的開始與純淨能量，妳正踏上新的旅程。",
     "A01": "魔法顯化：妳的願望與意圖正快速顯化，專注妳的目標。",
@@ -147,14 +146,15 @@ cards_summary = {
 
 }
 
-# 這是我們新增的模糊搜尋函數
+def normalize_text(text):
+    return re.sub(r'\W+', '', text).lower()
+
 def search_card_by_name(user_input):
-    # 使用正則表達式來匹配可能的卡片名稱或編號
+    normalized_input = normalize_text(user_input)
     for card_key, card_summary in cards_summary.items():
-        # 查找是否有關鍵字出現在牌卡編號或名稱中
-        if re.search(user_input, card_key, re.IGNORECASE):  # re.IGNORECASE 忽略大小寫
+        if normalize_text(card_key) == normalized_input or normalized_input in normalize_text(card_summary):
             return card_key, card_summary
-    return None, None  # 沒有找到則返回 None
+    return None, None
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -168,46 +168,21 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    card_key, card_summary = search_card_by_name(event.message.text)
+    user_input = event.message.text.strip()
+    card_key, card_summary = search_card_by_name(user_input)
 
     if card_key:
-        prompt = (
-            f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
-            "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
-        )
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",  # 改用 GPT-4o 模型
-            messages=[
-                {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=400,
-            temperature=1.0
-        )
-        card_reading = response.choices[0].message.content.strip()
-
-        additional_message = (
-            "\n\n✨ 如果你還有其他的心裡疑惑，或想知道更多高維給你的訊息，"
-            "歡迎進一步抽取三張、五張、七張，甚至十五張牌，"
-            "抽完後直接將牌卡名稱貼在視窗，將由逸君老師親自為你提供專業的深入解牌（有償服務）。"
-            "\n\n💫 或是你也覺得這個方式可以成為你的副業增加收入，歡迎直接告訴我們，逸君老師會為你提供完整的副業培訓計畫。"
-        )
-
-        reply = f"{card_reading}{additional_message}"
-
+        reply = f"✅ 找到牌卡編號「{card_key}」：{card_summary}"
     else:
-        reply = "抱歉，我沒有找到這張牌卡，請你檢查一下輸入的牌卡編號或名稱是否正確喔！"
+        # 增加明確回覆，用來確認搜尋邏輯的實際狀況
+        reply = (
+            f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！"
+            "\n\n👉 你可以嘗試輸入例如：「A02」、「088」或牌卡名稱，"
+            "確認是否有輸入錯誤，或讓我知道搜尋邏輯是否有問題。"
+        )
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 @app.route('/')
 def home():
-    return '馥靈之鑰情緒共振服務與副業引導已啟動！'
-@app.route('/cards/<card_key>')
-def get_card(card_key):
-    # 直接透過網址來檢查 cards_summary 內的卡片資料
-    card_summary = cards_summary.get(card_key)
-    if card_summary:
-        return f"找到牌卡 {card_key}：{card_summary}"
-    else:
-        return f"找不到牌卡 {card_key}，請檢查你的牌卡字典。"
+    return '馥靈之鑰情緒共振服務與副業引導已啟動！（Debug模式）'
