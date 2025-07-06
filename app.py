@@ -183,12 +183,17 @@ def handle_message(event):
     if card_key:
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
-            "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
+            "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，"
+            "以及適合今天執行的簡易能量調頻儀式。"
         )
-    response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",  # 如果無法使用GPT-4o，暫時改成gpt-3.5-turbo
+
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
+                {"role": "system",
+                 "content": ("你是馥靈之鑰的專業情緒共振牌卡解讀師，"
+                             "請提供溫暖、深入且富有洞察的解讀，"
+                             "善用心經的智慧但不提及心經來解讀。")},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=400,
@@ -205,6 +210,12 @@ def handle_message(event):
 
         reply = f"{card_reading}{additional_message}"
     else:
-        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！\n\n請檢查一下輸入的牌卡編號或名稱是否正確喔！"
+        reply = (
+            f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！"
+            "\n\n請檢查一下輸入的牌卡編號或名稱是否正確～"
+        )
 
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply)
+    )
