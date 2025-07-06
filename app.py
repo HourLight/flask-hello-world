@@ -169,24 +169,31 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text.strip()
-    card_key, card_summary = search_card_by_name(user_input)
+
+    # 嘗試直接從使用者輸入中提取牌卡編號或數字
+    card_pattern = re.compile(r'(A\d{2,3}|\d{3})', re.IGNORECASE)
+    card_match = card_pattern.search(user_input)
+
+    if card_match:
+        extracted_key = card_match.group().upper()
+        card_key, card_summary = search_card_by_name(extracted_key)
+    else:
+        card_key, card_summary = search_card_by_name(user_input)
 
     if card_key:
         prompt = (
             f"這是馥靈之鑰牌卡「{card_key}」的基本訊息：{card_summary}\n"
             "請根據這個訊息，提供使用者溫暖且深入的智慧指引、生活建議，以及適合今天執行的簡易能量調頻儀式。"
         )
-        # 注意此處更新為新版呼叫方式
-        response = openai.chat.completions.create(
-            model="gpt-4o",
+       response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",  # 如果無法使用GPT-4o，暫時改成gpt-3.5-turbo
             messages=[
-                {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀。"},
+                {"role": "system", "content": "你是馥靈之鑰的專業情緒共振牌卡解讀師，請提供溫暖、深入且富有洞察的解讀，善用心經的智慧但不提及心經來解讀。"},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=400,
             temperature=1.0
         )
-        # 回傳方式也有變更，需要加入 .choices[0].message.content
         card_reading = response.choices[0].message.content.strip()
 
         additional_message = (
@@ -198,6 +205,6 @@ def handle_message(event):
 
         reply = f"{card_reading}{additional_message}"
     else:
-        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！"
+        reply = f"⚠️ 無法找到你輸入的牌卡「{user_input}」喔！\n\n請檢查一下輸入的牌卡編號或名稱是否正確喔！"
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
